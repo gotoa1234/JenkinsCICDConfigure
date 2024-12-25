@@ -1,0 +1,43 @@
+pipeline {
+    agent any
+    
+	options {
+        // 設置 Job 描述
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+    }
+	
+    stages {
+	    stage('Set Description') {
+            steps {
+                script {
+                    // 設置當前建置的描述
+                    currentBuild.description = "Branch: ${env.BRANCH_NAME}"
+                    // 設置 Job 的描述
+                    currentBuild.rawBuild.project.description = "This is ${env.BRANCH_NAME} branch pipeline"
+                }
+            }
+        }
+	
+        stage('Checkout') {
+            steps {
+                checkout scm
+                echo "Current branch is: ${env.BRANCH_NAME}"
+            }
+        }
+        
+        stage('Deploy') {
+            steps {
+                script {
+                    if (env.BRANCH_NAME == 'main') {
+                        echo "Deploying to PROD from branch: ${env.BRANCH_NAME}"
+                    } else if (env.BRANCH_NAME == 'develop') {
+                        echo "Deploying to DEV from branch: ${env.BRANCH_NAME}"
+                    } else {
+                        echo "Building feature branch: ${env.BRANCH_NAME}"
+                    }
+                }
+                echo 'Deploy complete.'
+            }
+        }
+    }
+}
